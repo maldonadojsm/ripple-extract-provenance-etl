@@ -1,0 +1,8 @@
+name: ripple_transform
+summary: Transforms incoming messages for the Ripple ETL pipeline
+command:
+  - python
+  - -m
+  - ripple_transform.processor
+type: processor
+fields: []

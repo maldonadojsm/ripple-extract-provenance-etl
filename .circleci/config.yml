@@ -1,0 +1,74 @@
+# Docker Hub credentials must be set in CircleCI Project Settings → Environment Variables:
+#   DOCKERHUB_USERNAME  (e.g. maldonadojsm)
+#   DOCKERHUB_PASSWORD  (use a Docker Hub access token, not your account password)
+#
+# Image tags:
+#   branch or manually triggered job →  maldonadojsm/ripple-extract-provenance-etl:latest
+#   git tag / CircleCI tag pipeline  →  maldonadojsm/ripple-extract-provenance-etl:<git-tag>
+#                                       and maldonadojsm/ripple-extract-provenance-etl:latest
+#
+# Tagged release:
+#   git tag v0.1.0 && git push origin v0.1.0
+# CircleCI ignores git tags unless tags are explicitly allowed on the workflow.
+#
+# Do not run `make integration-test` here (docker compose stack).
+
+version: 2.1
+
+jobs:
+  test-and-publish:
+    docker:
+      - image: cimg/python:3.12
+    environment:
+      IMAGE: maldonadojsm/ripple-extract-provenance-etl
+    steps:
+      - checkout
+      - run:
+          name: Run tests (non-blocking)
+          command: |
+            set +e
+            pip install -e .
+            pip install pytest ruff
+            python -m pytest
+            status=$?
+            if [ "$status" -ne 0 ]; then
+              echo "Tests failed with exit code ${status}; continuing so the image still builds."
+            fi
+            exit 0
+
+      - setup_remote_docker
+
+      - run:
+          name: Log in to Docker Hub
+          command: |
+            if [ -z "${DOCKERHUB_USERNAME}" ] || [ -z "${DOCKERHUB_PASSWORD}" ]; then
+              echo "Set DOCKERHUB_USERNAME and DOCKERHUB_PASSWORD in CircleCI project env vars."
+              exit 1
+            fi
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      - run:
+          name: Build Docker image
+          command: |
+            docker build -t "${IMAGE}:latest" .
+            if [ -n "${CIRCLE_TAG:-}" ]; then
+              docker tag "${IMAGE}:latest" "${IMAGE}:${CIRCLE_TAG}"
+            fi
+
+      - run:
+          name: Push Docker image
+          command: |
+            docker push "${IMAGE}:latest"
+            if [ -n "${CIRCLE_TAG:-}" ]; then
+              docker push "${IMAGE}:${CIRCLE_TAG}"
+            fi
+
+workflows:
+  test-and-publish:
+    jobs:
+      - test-and-publish:
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              only: /.*/

@@ -1,0 +1,29 @@
+http:
+  enabled: true
+  address: 0.0.0.0:4195
+
+logger:
+  level: INFO
+  format: json
+  add_timestamp: true
+
+input:
+  redpanda:
+    seed_brokers:
+      - "${REDPANDA_BROKERS}"
+    topics:
+      - "${INPUT_TOPIC}"
+    consumer_group: "${CONSUMER_GROUP}"
+    start_offset: earliest
+
+pipeline:
+  processors:
+    - ripple_transform: {}
+
+output:
+  redpanda:
+    seed_brokers:
+      - "${REDPANDA_BROKERS}"
+    topic: "${OUTPUT_TOPIC}"
+    key: '${! meta("kafka_key") }'
+    acks: all

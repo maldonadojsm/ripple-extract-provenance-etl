@@ -1,0 +1,30 @@
+[project]
+name = "ripple-transform"
+version = "0.1.0"
+description = "Python RPC processor for the Ripple Redpanda Connect ETL pipeline"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "redpanda-connect>=0.1.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.12",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
