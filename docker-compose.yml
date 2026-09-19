@@ -1,8 +1,9 @@
-name: ripple-redpanda-etl
+name: ripple-extract-provenance-etl
 
 services:
   redpanda:
     image: docker.io/redpandadata/redpanda:v26.2.2
+    container_name: extract-provenance-redpanda
     hostname: redpanda
     command:
       - redpanda
@@ -30,6 +31,7 @@ services:
 
   topic-init:
     image: docker.io/redpandadata/redpanda:v26.2.2
+    container_name: extract-provenance-topic-init
     depends_on:
       redpanda:
         condition: service_healthy
@@ -53,6 +55,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: extract-provenance-etl
     depends_on:
       redpanda:
         condition: service_healthy
@@ -83,6 +86,7 @@ services:
 
   redpanda-console:
     image: docker.io/redpandadata/console:v3.11.0
+    container_name: extract-provenance-redpanda-console
     depends_on:
       redpanda:
         condition: service_healthy
