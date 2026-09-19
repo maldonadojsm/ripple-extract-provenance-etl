@@ -195,7 +195,7 @@ This runs Ruff and `rpk connect lint connect.yaml` (or the equivalent Connect im
 make integration-test
 ```
 
-The script starts Compose, waits for Redpanda health and ETL `/ready`, produces a unique payload, asserts the uppercase result, checks key preservation, then stops the ETL, produces another message, restarts the ETL, and confirms the consumer group resumes.
+The script starts Compose, waits for Redpanda health and ETL `/ready`, produces a unique payload, asserts the uppercase result, checks key preservation, then stops the ETL, produces another message, restarts the ETL, and confirms the consumer group resumes. Compose is stopped when the script exits (success or failure).
 
 ## Shutdown
 
