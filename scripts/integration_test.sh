@@ -13,6 +13,12 @@ if [[ ! -f .env ]]; then
   cp .env.example .env
 fi
 
+cleanup() {
+  echo "==> stopping compose stack"
+  docker compose down || true
+}
+trap cleanup EXIT
+
 produce() {
   local value="$1"
   local key="${2:-}"
