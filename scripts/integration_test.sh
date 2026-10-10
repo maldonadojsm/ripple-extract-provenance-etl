@@ -84,30 +84,28 @@ echo "==> waiting for ETL /ready"
 wait_for_http "$ETL_READY_URL"
 
 id="$(python3 -c 'import uuid; print(uuid.uuid4())')"
-payload="ripple-integration-test-${id}"
-expected="$(python3 -c 'import sys; print(sys.argv[1].upper())' "$payload")"
+payload="$(python3 -c 'import json,sys; print(json.dumps({"schema_version":"1","observation_id":sys.argv[1],"tenant_id":"hospital-a","application_id":"oncology-pipeline","observed_at":"2026-10-10T15:47:50Z","received_at":"2026-10-10T15:47:51.775422085Z","source":{"name":"open_targets","release":"26.06"},"observations":[],"context":{"analysis_id":"analysis-2741"}}))' "$id")"
 
-echo "==> producing unique payload"
+echo "==> producing an observation"
 produce "$payload"
 
-echo "==> consuming uppercase payload"
-wait_for_output "$expected"
+echo "==> consuming the flattened provenance row"
+wait_for_output "$id"
+wait_for_output '"source_name":"open_targets"'
 
 key="variant-${id}"
-key_payload="hello"
-key_expected="HELLO"
-produce "$key_payload" "$key"
+produce "$payload" "$key"
 
 echo "==> verifying key preservation"
-wait_for_output "${key} ${key_expected}" '%k %v'
+wait_for_output "${key} ${id}" '%k %v'
 
 echo "==> failure/recovery: stop ETL, produce, restart"
 docker compose stop ripple-etl
-recovery_payload="ripple-recovery-test-${id}"
-recovery_expected="$(python3 -c 'import sys; print(sys.argv[1].upper())' "$recovery_payload")"
+recovery_id="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+recovery_payload="$(python3 -c 'import json,sys; print(json.dumps({"schema_version":"1","observation_id":sys.argv[1],"tenant_id":"hospital-a","application_id":"oncology-pipeline","observed_at":"2026-10-10T15:47:50Z","received_at":"2026-10-10T15:47:51.775422085Z","source":{"name":"open_targets","release":"26.06"},"observations":[],"context":{"analysis_id":"analysis-recovery"}}))' "$recovery_id")"
 produce "$recovery_payload"
 docker compose start ripple-etl
 wait_for_http "$ETL_READY_URL"
-wait_for_output "$recovery_expected"
+wait_for_output "$recovery_id"
 
 echo "integration tests passed"

@@ -18,6 +18,10 @@ input:
 
 pipeline:
   processors:
+    # The redpanda input keeps the raw header slice on this key. The Python
+    # plugin cannot serialize that type, so Connect skips the processor and
+    # writes the original record.
+    - mapping: 'meta __rpcn_kafka_headers = deleted()'
     - ripple_transform: {}
 
 output:

@@ -1,6 +1,6 @@
 # Ripple Redpanda Connect ETL
 
-A small, production-shaped ETL that uppercases message payloads.
+A small ETL that flattens an ingress observation into one provenance row.
 
 Redpanda Connect owns consumption, acknowledgements, retries, and production.
 Python owns only the transformation.
@@ -160,17 +160,7 @@ docker compose exec -T redpanda \
 
 Or `make consume`.
 
-Expected payload for `hello ripple`:
-
-```text
-HELLO RIPPLE
-```
-
-Expected for key `variant-123` and payload `hello`:
-
-```text
-variant-123 HELLO
-```
+The output is one JSON object with `source_name`, `source_release`, and `analysis_id` lifted out of the ingress envelope. Observation items are not included.
 
 ## Run unit tests
 
@@ -195,7 +185,7 @@ This runs Ruff and `rpk connect lint connect.yaml` (or the equivalent Connect im
 make integration-test
 ```
 
-The script starts Compose, waits for Redpanda health and ETL `/ready`, produces a unique payload, asserts the uppercase result, checks key preservation, then stops the ETL, produces another message, restarts the ETL, and confirms the consumer group resumes. Compose is stopped when the script exits (success or failure).
+The script starts Compose, waits for Redpanda health and ETL `/ready`, produces an observation, asserts the flattened provenance row, checks key preservation, then stops the ETL, produces another message, restarts the ETL, and confirms the consumer group resumes. Compose is stopped when the script exits (success or failure).
 
 ## Shutdown
 
