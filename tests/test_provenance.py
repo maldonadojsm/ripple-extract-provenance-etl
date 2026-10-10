@@ -1,0 +1,49 @@
+from ripple_transform.provenance import flatten_record
+
+
+def _record():
+    return {
+        "schema_version": "1",
+        "observation_id": "e5d636d9-6303-46bb-8dba-0fa4c2667932",
+        "tenant_id": "hospital-a",
+        "application_id": "oncology-pipeline",
+        "observed_at": "2026-10-10T15:47:50Z",
+        "received_at": "2026-10-10T15:47:51.775422085Z",
+        "source": {"name": "open_targets", "release": "26.06"},
+        "observations": [
+            {
+                "usage": "REQUESTED",
+                "entity_type": "gene",
+                "identifier": {"namespace": "ensembl", "value": "ENSG00000012048"},
+            }
+        ],
+        "context": {"analysis_id": "analysis-2741"},
+    }
+
+
+def test_flatten_record_keeps_the_envelope_and_drops_observations():
+    row = flatten_record(_record(), created_at="2026-10-10T15:47:52Z")
+
+    assert row == {
+        "observation_id": "e5d636d9-6303-46bb-8dba-0fa4c2667932",
+        "schema_version": "1",
+        "tenant_id": "hospital-a",
+        "application_id": "oncology-pipeline",
+        "observed_at": "2026-10-10T15:47:50Z",
+        "received_at": "2026-10-10T15:47:51.775422085Z",
+        "source_name": "open_targets",
+        "source_release": "26.06",
+        "analysis_id": "analysis-2741",
+        "created_at": "2026-10-10T15:47:52Z",
+    }
+    assert "observations" not in row
+
+
+def test_flatten_record_allows_a_missing_context():
+    record = _record()
+    del record["context"]
+
+    row = flatten_record(record, created_at="2026-10-10T15:47:52Z")
+
+    assert row["analysis_id"] is None
+    assert row["source_name"] == "open_targets"
