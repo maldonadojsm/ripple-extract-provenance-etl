@@ -34,6 +34,9 @@ def test_flatten_record_keeps_the_envelope_and_drops_observations():
         "source_name": "open_targets",
         "source_release": "26.06",
         "analysis_id": "analysis-2741",
+        "intent_code": None,
+        "intent_method": None,
+        "intent_version": None,
         "created_at": "2026-10-10T15:47:52Z",
     }
     assert "observations" not in row
@@ -47,3 +50,18 @@ def test_flatten_record_allows_a_missing_context():
 
     assert row["analysis_id"] is None
     assert row["source_name"] == "open_targets"
+
+
+def test_flatten_record_copies_intent():
+    record = _record()
+    record["intent"] = {
+        "code": "RETRIEVE_GENE_DISEASE_ASSOCIATIONS",
+        "method": "HARDCODED",
+        "version": "1.0.0",
+    }
+
+    row = flatten_record(record, created_at="2026-10-10T15:47:52Z")
+
+    assert row["intent_code"] == "RETRIEVE_GENE_DISEASE_ASSOCIATIONS"
+    assert row["intent_method"] == "HARDCODED"
+    assert row["intent_version"] == "1.0.0"
