@@ -17,6 +17,7 @@ def flatten_record(record: dict, *, created_at: str) -> dict:
     """
     source = record.get("source") or {}
     context = record.get("context") or {}
+    intent = record.get("intent") or {}
     return {
         "observation_id": record.get("observation_id"),
         "schema_version": record.get("schema_version"),
@@ -27,5 +28,8 @@ def flatten_record(record: dict, *, created_at: str) -> dict:
         "source_name": source.get("name"),
         "source_release": source.get("release"),
         "analysis_id": context.get("analysis_id"),
+        "intent_code": intent.get("code"),
+        "intent_method": intent.get("method"),
+        "intent_version": intent.get("version"),
         "created_at": created_at,
     }
